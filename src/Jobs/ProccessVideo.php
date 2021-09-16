@@ -19,7 +19,6 @@ class ProccessVideo implements ShouldQueue
 
     protected $video;
 
-
     public function __construct(Video $video)
     {
         $this->video = $video;
@@ -44,6 +43,10 @@ class ProccessVideo implements ShouldQueue
         $midBitrate = (new X264)->setKiloBitrate(500);
         $highBitrate = (new X264)->setKiloBitrate(1000);
         $superBitrate = (new X264)->setKiloBitrate(1500);
+
+        // TODO here check status of current job
+        // if it is processing then return 
+        // check hash (eg md5) of current video file to prevent converting again same video
 
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'starting'
@@ -80,22 +83,11 @@ class ProccessVideo implements ShouldQueue
 
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'finished',
-            'path' => $dir . '/hls.m3u8'
+            'path' => $dir . '/hls.m3u8',
+            // 'md5' => md5() of processed input file
         ]]);
-
 
         return true;
 
-
-        /*
-        FFMpeg::fromDisk('local')
-            ->open($this->video->value)
-            ->export()
-            ->toDisk('local')
-            ->inFormat(new \FFMpeg\Format\Video\X264)
-            ->save('small_steve.mkv');
-        file_put_contents(__DIR__ . '/success', $this->video->value);
-        */
-        // Process uploaded podcast...
     }
 }
