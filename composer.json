@@ -1,0 +1,36 @@
+{
+    "name": "escolalms/video",
+    "description": "Escola Headless LMS Video Processing",
+    "type": "package",
+    "require": {
+      "php": ">=7.4 | >=8.0",
+      "laravel/framework": ">=8.0",
+      "escolalms/courses": "^0.1",
+      "pbmedia/laravel-ffmpeg": "^7"
+    },
+    "require-dev": {
+      "phpunit/phpunit": "^9.0",
+      "orchestra/testbench": ">=5.0"
+    },
+    "license": "MIT",
+    "authors": [
+      {
+        "name": "Mateusz Wojczal",
+        "email": "mateusz@wojczal.com"
+      }
+    ],
+    "autoload": {
+      "psr-4": {
+        "EscolaLms\\Video\\": "src",
+        "EscolaLms\\Video\\Tests\\": "tests"
+      }
+    },
+    "extra": {
+      "laravel": {
+        "providers": [
+          "EscolaLms\\Video\\EscolaLmsVideoServiceProvider"
+        ]
+      }
+    }
+  }
+  
