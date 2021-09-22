@@ -5,7 +5,7 @@
     "require": {
       "php": ">=7.4 | >=8.0",
       "laravel/framework": ">=8.0",
-      "escolalms/courses": "^0.1",
+      "escolalms/courses": "^0",
       "pbmedia/laravel-ffmpeg": "^7"
     },
     "require-dev": {
