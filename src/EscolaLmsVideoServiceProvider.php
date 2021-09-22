@@ -21,12 +21,14 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
     {
         Event::listen(queueable(function (VideoUpdated $event) {
             $video = $event->getVideo();
-            $arr = is_array($video->topic->json) ? $video->topic->json : [];
-            $video->topic->json = array_merge($arr, ['ffmpeg' => [
-                'state' => 'queue'
-            ]]);
-            $video->topic->save();
-            ProccessVideo::dispatch($video);
+            if (isset($video->topic)) {
+                $arr = is_array($video->topic->json) ? $video->topic->json : [];
+                $video->topic->json = array_merge($arr, ['ffmpeg' => [
+                    'state' => 'queue'
+                ]]);
+                $video->topic->save();
+                ProccessVideo::dispatch($video);
+            }
         }));
     }
 }
