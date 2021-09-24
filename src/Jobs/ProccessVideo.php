@@ -3,25 +3,26 @@
 namespace EscolaLms\Video\Jobs;
 
 use EscolaLms\Courses\Models\TopicContent\Video;
+use FFMpeg\Format\Video\X264;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
-use FFMpeg\Format\Video\X264;
-
 
 class ProccessVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $video;
+    protected string $disk;
 
-    public function __construct(Video $video)
+    public function __construct(Video $video, string $disk = 'local')
     {
         $this->video = $video;
+        $this->disk = $disk;
     }
 
     private function updateVideoState($state)
@@ -54,7 +55,7 @@ class ProccessVideo implements ShouldQueue
 
         $video->topic->save();
 
-        FFMpeg::fromDisk('local')
+        FFMpeg::fromDisk($this->disk)
             ->open($input)
             ->exportForHLS()
             /*
@@ -88,6 +89,5 @@ class ProccessVideo implements ShouldQueue
         ]]);
 
         return true;
-
     }
 }

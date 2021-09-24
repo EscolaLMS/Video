@@ -2,14 +2,11 @@
 
 namespace EscolaLms\Video;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Event;
 use EscolaLms\Courses\Events\VideoUpdated;
-use function Illuminate\Events\queueable;
 use EscolaLms\Video\Jobs\ProccessVideo;
-use EscolaLms\Courses\Models\TopicContent\Video;
-
-use Throwable;
+use function Illuminate\Events\queueable;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * SWAGGER_VERSION
@@ -19,6 +16,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 {
     public function boot()
     {
+
         Event::listen(queueable(function (VideoUpdated $event) {
             $video = $event->getVideo();
             if (isset($video->topic)) {
@@ -30,5 +28,9 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
                 ProccessVideo::dispatch($video);
             }
         }));
+    }
+
+    public function register()
+    {
     }
 }
