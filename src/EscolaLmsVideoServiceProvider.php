@@ -2,26 +2,24 @@
 
 namespace EscolaLms\Video;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Event;
 use EscolaLms\Courses\Events\VideoUpdated;
-use function Illuminate\Events\queueable;
 use EscolaLms\Video\Jobs\ProccessVideo;
-use EscolaLms\Courses\Models\TopicContent\Video;
-
-use Throwable;
+use EscolaLms\Video\Models\Video;
+use function Illuminate\Events\queueable;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * SWAGGER_VERSION
  */
-
 class EscolaLmsVideoServiceProvider extends ServiceProvider
 {
     public function boot()
     {
         Event::listen(queueable(function (VideoUpdated $event) {
-            $video = $event->getVideo();
+            $video = Video::find($event->getVideo()->getKey());
             if (isset($video->topic)) {
+                $video->topic->topicable_type = Video::class;
                 $arr = is_array($video->topic->json) ? $video->topic->json : [];
                 $video->topic->json = array_merge($arr, ['ffmpeg' => [
                     'state' => 'queue'
@@ -30,5 +28,14 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
                 ProccessVideo::dispatch($video);
             }
         }));
+
+        if ($this->app->runningInConsole()) {
+            $this->bootForConsole();
+        }
+    }
+
+    public function bootForConsole()
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 }

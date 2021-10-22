@@ -2,22 +2,20 @@
 
 namespace EscolaLms\Video\Jobs;
 
-use EscolaLms\Courses\Models\TopicContent\Video;
+use EscolaLms\Video\Models\Video;
+use FFMpeg\Format\Video\X264;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
-use FFMpeg\Format\Video\X264;
-
 
 class ProccessVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $video;
+    protected Video $video;
 
     public function __construct(Video $video)
     {
@@ -27,9 +25,15 @@ class ProccessVideo implements ShouldQueue
     private function updateVideoState($state)
     {
         $video = $this->video;
+
         $arr = is_array($video->topic->json) ? $video->topic->json : [];
         $video->topic->json = array_merge($arr, $state);
         $video->topic->save();
+
+        if ($state['ffmpeg']['state'] === 'finished') {
+            $video->hls = $state['ffmpeg']['path'];
+            $video->save();
+        }
     }
 
     public function handle()
@@ -88,6 +92,5 @@ class ProccessVideo implements ShouldQueue
         ]]);
 
         return true;
-
     }
 }
