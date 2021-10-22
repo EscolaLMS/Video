@@ -4,7 +4,7 @@
   "type": "package",
   "require": {
     "php": ">=7.4 | >=8.0",
-    "escolalms/courses": "^0",
+    "escolalms/courses": ">=0.2.13",
     "laravel/framework": ">=8.0",
     "league/flysystem-aws-s3-v3": "^1.0",
     "pbmedia/laravel-ffmpeg": "^7"
@@ -18,6 +18,10 @@
     {
       "name": "Mateusz Wojczal",
       "email": "mateusz@wojczal.com"
+    },
+    {
+      "name": "Paweł Chołaj",
+      "email": "pawel@cholaj.pl"
     }
   ],
   "autoload": {

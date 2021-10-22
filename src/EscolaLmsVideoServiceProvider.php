@@ -3,6 +3,8 @@
 namespace EscolaLms\Video;
 
 use EscolaLms\Courses\Events\VideoUpdated;
+use EscolaLms\Courses\Models\TopicContent\Video as TopicContentVideo;
+use EscolaLms\Courses\Repositories\TopicRepository;
 use EscolaLms\Video\Jobs\ProccessVideo;
 use EscolaLms\Video\Models\Video;
 use function Illuminate\Events\queueable;
@@ -16,6 +18,8 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 {
     public function register()
     {
+        TopicRepository::unregisterContentClass(TopicContentVideo::class);
+        TopicRepository::registerContentClass(Video::class);
     }
 
     public function boot()
