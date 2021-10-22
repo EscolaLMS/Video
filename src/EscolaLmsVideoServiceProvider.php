@@ -14,6 +14,10 @@ use Illuminate\Support\ServiceProvider;
  */
 class EscolaLmsVideoServiceProvider extends ServiceProvider
 {
+    public function register()
+    {
+    }
+
     public function boot()
     {
         Event::listen(queueable(function (VideoUpdated $event) {

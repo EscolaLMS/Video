@@ -16,10 +16,12 @@ class ProccessVideo implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected Video $video;
+    protected string $disk;
 
-    public function __construct(Video $video)
+    public function __construct(Video $video, string $disk = 'local')
     {
         $this->video = $video;
+        $this->disk = $disk;
     }
 
     private function updateVideoState($state)
@@ -38,7 +40,6 @@ class ProccessVideo implements ShouldQueue
 
     public function handle()
     {
-
         $video = $this->video;
         $input = $video->value;
         $dir = dirname($input);
@@ -58,7 +59,7 @@ class ProccessVideo implements ShouldQueue
 
         $video->topic->save();
 
-        FFMpeg::fromDisk('local')
+        FFMpeg::fromDisk($this->disk)
             ->open($input)
             ->exportForHLS()
             /*
