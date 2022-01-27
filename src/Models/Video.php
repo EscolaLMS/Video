@@ -2,7 +2,7 @@
 
 namespace EscolaLms\Video\Models;
 
-use EscolaLms\Courses\Models\TopicContent\Video as TopicContentVideo;
+use EscolaLms\TopicTypes\Models\TopicContent\Video as TopicContentVideo;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -35,7 +35,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class Video extends TopicContentVideo
 {
-
     public $fillable = [
         'value',
         'poster',

@@ -2,10 +2,9 @@
 
 namespace EscolaLms\Video;
 
-use EscolaLms\Courses\Events\VideoUpdated;
-use EscolaLms\Courses\Models\TopicContent\Video as TopicContentVideo;
-use EscolaLms\Courses\Repositories\TopicRepository;
-use EscolaLms\Video\Jobs\ProccessVideo;
+use EscolaLms\Courses\Repositories\Contracts\TopicRepositoryContract;
+use EscolaLms\TopicTypes\Events\VideoUpdated;
+use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
 use function Illuminate\Events\queueable;
 use Illuminate\Support\Facades\Event;
@@ -18,22 +17,22 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        TopicRepository::unregisterContentClass(TopicContentVideo::class);
-        TopicRepository::registerContentClass(Video::class);
+        app(TopicRepositoryContract::class)->registerContentClass(Video::class);
     }
 
     public function boot()
     {
         Event::listen(queueable(function (VideoUpdated $event) {
             $video = Video::find($event->getVideo()->getKey());
-            if (isset($video->topic)) {
-                $video->topic->topicable_type = Video::class;
-                $arr = is_array($video->topic->json) ? $video->topic->json : [];
-                $video->topic->json = array_merge($arr, ['ffmpeg' => [
+            $topic = $video->topic;
+
+            if (isset($topic)) {
+                $arr = is_array($topic->json) ? $topic->json : [];
+                $topic->json = array_merge($arr, ['ffmpeg' => [
                     'state' => 'queue'
                 ]]);
-                $video->topic->save();
-                ProccessVideo::dispatch($video);
+                $topic->save();
+                ProcessVideo::dispatch($video);
             }
         }));
 

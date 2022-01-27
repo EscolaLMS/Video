@@ -5,10 +5,11 @@ namespace EscolaLms\Video\Tests\Feature;
 use EscolaLms\Courses\Models\Course;
 use EscolaLms\Courses\Models\Lesson;
 use EscolaLms\Courses\Models\Topic;
-use EscolaLms\Courses\Models\TopicContent\Video;
-use EscolaLms\Video\Jobs\ProccessVideo;
+use EscolaLms\Video\Jobs\ProcessVideo;
+use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Tests\TestCase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 
 class VideoTest extends TestCase
@@ -18,6 +19,9 @@ class VideoTest extends TestCase
      */
     public function testLocal()
     {
+        Storage::fake('local');
+        Event::fake(VideoUpdated::class);
+
         $course = Course::factory()->create();
         $lesson = Lesson::factory()->create(['course_id' => $course->getKey()]);
         $topic = Topic::factory()->create(['lesson_id' => $lesson->getKey()]);
@@ -46,7 +50,7 @@ class VideoTest extends TestCase
         $video->save();
         $video->topic()->save($topic);
 
-        $job = new ProccessVideo($video);
+        $job = new ProcessVideo($video);
         $job->handle();
 
         $video->refresh();
@@ -56,6 +60,7 @@ class VideoTest extends TestCase
 
         $fullPlaylistPath = Storage::disk('local')->path($json['ffmpeg']['path']);
         $this->assertFileExists($fullPlaylistPath);
+        $this->assertEquals('finished', $json['ffmpeg']['state']);
     }
 
     /**
@@ -63,6 +68,9 @@ class VideoTest extends TestCase
      */
     public function testS3()
     {
+        Storage::fake('s3');
+        Event::fake(VideoUpdated::class);
+
         $course = Course::factory()->create();
         $lesson = Lesson::factory()->create(['course_id' => $course->getKey()]);
         $topic = Topic::factory()->create(['lesson_id' => $lesson->getKey()]);
@@ -87,11 +95,13 @@ class VideoTest extends TestCase
         $video->save();
         $video->topic()->save($topic);
 
-        $job = new ProccessVideo($video, 's3');
+        $job = new ProcessVideo($video, 's3');
         $job->handle();
 
         $video->refresh();
         $json = $video->topic->json;
+
         Storage::disk('s3')->assertExists($json['ffmpeg']['path']);
+        $this->assertEquals('finished', $json['ffmpeg']['state']);
     }
 }
