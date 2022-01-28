@@ -4,12 +4,14 @@ namespace EscolaLms\Video\Jobs;
 
 use EscolaLms\Courses\Models\Topic;
 use EscolaLms\Video\Models\Video;
+use FFMpeg\Exception\RuntimeException;
 use FFMpeg\Format\Video\X264;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
 
 class ProcessVideo implements ShouldQueue
@@ -27,43 +29,45 @@ class ProcessVideo implements ShouldQueue
         $this->disk = $disk;
     }
 
-    private function updateVideoState($state): void
-    {
-        $video = $this->video;
-        $topic = $this->topic;
-
-        $arr = is_array($topic->json) ? $topic->json : [];
-        $topic->json = array_merge($arr, $state);
-        $topic->save();
-
-        if ($state['ffmpeg']['state'] === 'finished') {
-            $video->hls = $state['ffmpeg']['path'];
-            $video->save();
-        }
-    }
-
     public function handle(): bool
     {
         $video = $this->video;
         $topic = $this->topic;
         $input = $video->value;
         $dir = dirname($input);
-        $hlsFilePath = $dir . '/hls.m3u8';
+        $hlsPath = $dir . '/hls.m3u8';
 
+        $this->clearDirectory($dir, $video->value);
+
+        try {
+            $this->process($video, $input, $hlsPath);
+
+            $this->updateVideoState(['ffmpeg' => [
+                'state' => 'starting'
+            ]]);
+            $topic->save();
+        } catch (RuntimeException $exception) {
+            $this->updateVideoState(['ffmpeg' => [
+                'state' => 'error',
+                'message' => $exception->getMessage()
+            ]]);
+
+            return false;
+        }
+
+        $this->updateVideoState(['ffmpeg' => [
+            'state' => 'finished',
+            'path' => $hlsPath,
+        ]]);
+
+        return true;
+    }
+
+    private function process(Video $video, string $input, string $hlsPath): void {
         $lowBitrate = (new X264)->setKiloBitrate(250);
         $midBitrate = (new X264)->setKiloBitrate(500);
         $highBitrate = (new X264)->setKiloBitrate(1000);
         $superBitrate = (new X264)->setKiloBitrate(1500);
-
-        // TODO here check status of current job
-        // if it is processing then return
-        // check hash (eg md5) of current video file to prevent converting again same video
-
-        $this->updateVideoState(['ffmpeg' => [
-            'state' => 'starting'
-        ]]);
-
-        $topic->save();
 
         FFMpeg::fromDisk($this->disk)
             ->open($input)
@@ -90,13 +94,39 @@ class ProcessVideo implements ShouldQueue
                     'percentage' => $percentage
                 ]]);
             })
-            ->save($hlsFilePath);
+            ->save($hlsPath);
+    }
 
-        $this->updateVideoState(['ffmpeg' => [
-            'state' => 'finished',
-            'path' => $hlsFilePath,
-            // 'md5' => md5($video->value)
-        ]]);
+    private function updateVideoState($state): void
+    {
+        $video = $this->video;
+        $topic = $this->topic;
+
+        $arr = is_array($topic->json) ? $topic->json : [];
+        $topic->json = array_merge($arr, $state);
+        $topic->save();
+
+        if ($state['ffmpeg']['state'] === 'finished') {
+            $video->hls = $state['ffmpeg']['path'];
+            $video->save();
+        }
+    }
+
+    private function clearDirectory(string $dir, string $video): bool
+    {
+        $storage = Storage::disk($this->disk);
+
+        if ($storage->exists($dir)) {
+            $files = $storage->allFiles($dir);
+
+            foreach ($files as $file) {
+                if ($file === $video) {
+                    continue;
+                }
+
+                $storage->delete($file);
+            }
+        }
 
         return true;
     }

@@ -3,9 +3,10 @@
 namespace EscolaLms\Video;
 
 use EscolaLms\Courses\Repositories\Contracts\TopicRepositoryContract;
-use EscolaLms\TopicTypes\Events\VideoUpdated;
+use EscolaLms\TopicTypes\Events\TopicTypeChanged;
 use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
+use Illuminate\Support\Facades\Storage;
 use function Illuminate\Events\queueable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -22,8 +23,8 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        Event::listen(queueable(function (VideoUpdated $event) {
-            $video = Video::find($event->getVideo()->getKey());
+        Event::listen(queueable(function (TopicTypeChanged $event) {
+            $video = Video::find($event->getTopicContent()->getKey());
             $topic = $video->topic;
 
             if (isset($topic)) {
@@ -39,6 +40,17 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
+
+        \EscolaLms\TopicTypes\Http\Resources\TopicType\Client\VideoResource::extend(fn($thisObj) => [
+            'value' => $thisObj->hls,
+            'url' => $thisObj->hls ? Storage::disk('local')->url($thisObj->hls) : null,
+        ]);
+
+        \EscolaLms\TopicTypes\Http\Resources\TopicType\Admin\VideoResource::extend(fn($thisObj) => [
+            'hls' => $thisObj->hls,
+            'hls_url' => $thisObj->hls ? Storage::disk('local')->url($thisObj->hls) : null,
+        ]);
+
     }
 
     public function bootForConsole()
