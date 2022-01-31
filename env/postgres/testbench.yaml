@@ -17,3 +17,4 @@ providers:
   - EscolaLms\Courses\EscolaLmsCourseServiceProvider
   - EscolaLms\Tags\EscolaLmsTagsServiceProvider
   - ProtoneMedia\LaravelFFMpeg\Support\ServiceProvider
+  - EscolaLms\TopicTypes\EscolaLmsTopicTypesServiceProvider
