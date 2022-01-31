@@ -4,7 +4,7 @@
   "type": "package",
   "require": {
     "php": ">=7.4 | >=8.0",
-    "escolalms/courses": ">=0.2.13",
+    "escolalms/courses": "^0",
     "escolalms/topic-types": "^0",
     "laravel/framework": ">=8.0",
     "league/flysystem-aws-s3-v3": "^1.0",
@@ -37,5 +37,12 @@
         "EscolaLms\\Video\\EscolaLmsVideoServiceProvider"
       ]
     }
-  }
+  },
+  "config": {
+    "optimize-autoloader": false,
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
