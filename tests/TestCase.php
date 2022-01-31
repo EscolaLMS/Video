@@ -8,6 +8,7 @@ use EscolaLms\Categories\EscolaLmsCategoriesServiceProvider;
 use EscolaLms\Courses\EscolaLmsCourseServiceProvider;
 use EscolaLms\Scorm\EscolaLmsScormServiceProvider;
 use EscolaLms\Tags\EscolaLmsTagsServiceProvider;
+use EscolaLms\TopicTypes\EscolaLmsTopicTypesServiceProvider;
 use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
 use Laravel\Passport\Passport;
 use Laravel\Passport\PassportServiceProvider;
@@ -35,6 +36,7 @@ class TestCase extends \EscolaLms\Core\Tests\TestCase
             EscolaLmsScormServiceProvider::class,
             EscolaLmsCategoriesServiceProvider::class,
             EscolaLmsCourseServiceProvider::class,
+            EscolaLmsTopicTypesServiceProvider::class,
             EscolaLmsTagsServiceProvider::class,
             FFMpegServiceProvider::class,
         ];
@@ -49,7 +51,7 @@ class TestCase extends \EscolaLms\Core\Tests\TestCase
         $app['config']->set('passport.client_uuids', true);
         $app['config']->set('database.connections.mysql.strict', false);
         $app['config']->set('app.debug', (bool) env('APP_DEBUG', true));
-        
+
         // need to have aws auth config in .env
         $app['config']->set('filesystems.disks.s3.key', env('AWS_ACCESS_KEY_ID'));
         $app['config']->set('filesystems.disks.s3.secret', env('AWS_SECRET_ACCESS_KEY'));
