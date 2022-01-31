@@ -10,4 +10,4 @@ tl;dr coverts TopicVideo into HLS stream
 [![downloads](https://img.shields.io/packagist/l/escolalms/video)](https://packagist.org/packages/escolalms/video)
 
 - `ffmpeg` must be installed
-- once `EscolaLms\Courses\Events\VideoUpdated` is dispatched job [ProccessVideo](src/Jobs/ProccessVideo.php) added to queue
+- once `EscolaLms\TopicType\TopicTypeChanged` is dispatched job [ProccessVideo](src/Jobs/ProccessVideo.php) added to queue

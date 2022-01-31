@@ -23,8 +23,13 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 
     public function boot()
     {
+
         Event::listen(queueable(function (TopicTypeChanged $event) {
-            $video = Video::find($event->getTopicContent()->getKey());
+            if (!($event->getTopicContent() instanceof \EscolaLms\TopicTypes\Models\TopicContent\Video)) {
+                return;
+            }
+
+            $video = Video::findOrFail($event->getTopicContent()->getKey());
             $topic = $video->topic;
 
             if (isset($topic)) {
