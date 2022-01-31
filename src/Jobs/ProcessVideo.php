@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use ProtoneMedia\LaravelFFMpeg\Exporters\HLSExporter;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
 
 class ProcessVideo implements ShouldQueue
@@ -63,31 +64,28 @@ class ProcessVideo implements ShouldQueue
         return true;
     }
 
-    private function process(Video $video, string $input, string $hlsPath): void {
-        $lowBitrate = (new X264)->setKiloBitrate(250);
-        $midBitrate = (new X264)->setKiloBitrate(500);
-        $highBitrate = (new X264)->setKiloBitrate(1000);
-        $superBitrate = (new X264)->setKiloBitrate(1500);
+    private function getFFMpeg(string $input): HLSExporter
+    {
+        $bitRates = config('escolalms_video.bitrates');
 
-        FFMpeg::fromDisk($this->disk)
+        $ffmpeg = FFMpeg::fromDisk($this->disk)
             ->open($input)
-            ->exportForHLS()
-            /*
-            ->addFormat($lowBitrate, function ($media) {
-                $media->addFilter('scale=640:480');
-            })
-            */
-            ->addFormat($midBitrate, function ($media) {
-                $media->scale(640, 480);
-            })
-            ->addFormat($highBitrate, function ($media) {
-                $media->scale(1280, 720);
-            })
-            /*
-            ->addFormat($superBitrate, function ($media) {
-                $media->scale(1280, 720);
-            })
-            */
+            ->exportForHLS();
+
+        foreach ($bitRates as $bitRate) {
+            $value = (new X264)->setKiloBitrate($bitRate['kiloBitrate']);
+            $ffmpeg->addFormat($value, function ($media) use ($bitRate) {
+                $scale = 'scale=' . $bitRate['scale'];
+                $media->addFilter($scale);
+            });
+        }
+
+        return $ffmpeg;
+    }
+
+    private function process(Video $video, string $input, string $hlsPath): void {
+        $this
+            ->getFFMpeg($input)
             ->onProgress(function ($percentage) use ($video) {
                 $this->updateVideoState(['ffmpeg' => [
                     'state' => 'coding',
@@ -99,7 +97,6 @@ class ProcessVideo implements ShouldQueue
 
     private function updateVideoState($state): void
     {
-        $video = $this->video;
         $topic = $this->topic;
 
         $arr = is_array($topic->json) ? $topic->json : [];
@@ -109,9 +106,6 @@ class ProcessVideo implements ShouldQueue
         if ($state['ffmpeg']['state'] === 'finished') {
             $topic->active = true;
             $topic->save();
-
-            $video->hls = $state['ffmpeg']['path'];
-            $video->save();
         }
     }
 

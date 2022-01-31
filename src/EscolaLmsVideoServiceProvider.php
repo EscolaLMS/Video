@@ -18,12 +18,13 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 {
     public function register()
     {
+        $this->mergeConfigFrom(__DIR__ . '/config.php', 'escolalms_video');
+
         Topic::registerContentClass(Video::class);
     }
 
     public function boot()
     {
-
         Event::listen(queueable(function (TopicTypeChanged $event) {
             if (!($event->getTopicContent() instanceof \EscolaLms\TopicTypes\Models\TopicContent\Video)) {
                 return;
@@ -47,20 +48,31 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
             $this->bootForConsole();
         }
 
-        \EscolaLms\TopicTypes\Http\Resources\TopicType\Client\VideoResource::extend(fn($thisObj) => [
-            'value' => $thisObj->hls,
-            'url' => $thisObj->hls ? Storage::disk('local')->url($thisObj->hls) : null,
-        ]);
+        \EscolaLms\TopicTypes\Http\Resources\TopicType\Client\VideoResource::extend(function($thisObj) {
+            $json = $thisObj->topic->json;
 
-        \EscolaLms\TopicTypes\Http\Resources\TopicType\Admin\VideoResource::extend(fn($thisObj) => [
-            'hls' => $thisObj->hls,
-            'hls_url' => $thisObj->hls ? Storage::disk('local')->url($thisObj->hls) : null,
-        ]);
+            return [
+                'value' => $json['ffmpeg']['path'] ?? null,
+                'url' => isset($json['ffmpeg']['path']) ? Storage::disk('local')->url($json['ffmpeg']['path']) : null,
+            ];
+        });
+
+        \EscolaLms\TopicTypes\Http\Resources\TopicType\Admin\VideoResource::extend(function($thisObj) {
+            $json = $thisObj->topic->json;
+
+            return [
+                'hls' => $json['ffmpeg']['path'] ?? null,
+                'hls_url' => isset($json['ffmpeg']['path']) ? Storage::disk('local')->url($json['ffmpeg']['path']) : null,
+            ];
+        });
 
     }
 
     public function bootForConsole()
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->publishes([
+            __DIR__ . '/config.php' => config_path('escolalms_video.php'),
+        ], 'escolalms_video.config');
     }
 }
