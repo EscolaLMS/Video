@@ -2,7 +2,7 @@
 
 namespace EscolaLms\Video;
 
-use EscolaLms\Courses\Repositories\Contracts\TopicRepositoryContract;
+use EscolaLms\Courses\Facades\Topic;
 use EscolaLms\TopicTypes\Events\TopicTypeChanged;
 use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
@@ -18,7 +18,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        app(TopicRepositoryContract::class)->registerContentClass(Video::class);
+        Topic::registerContentClass(Video::class);
     }
 
     public function boot()
