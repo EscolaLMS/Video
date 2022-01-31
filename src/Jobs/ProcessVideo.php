@@ -107,6 +107,9 @@ class ProcessVideo implements ShouldQueue
         $topic->save();
 
         if ($state['ffmpeg']['state'] === 'finished') {
+            $topic->active = true;
+            $topic->save();
+
             $video->hls = $state['ffmpeg']['path'];
             $video->save();
         }

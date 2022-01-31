@@ -37,6 +37,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
                 $topic->json = array_merge($arr, ['ffmpeg' => [
                     'state' => 'queue'
                 ]]);
+                $topic->active = false;
                 $topic->save();
                 ProcessVideo::dispatch($video);
             }
