@@ -1,0 +1,19 @@
+env:
+  - DB_CONNECTION=pgsql
+  - DB_HOST=postgres
+  - DB_PORT=5432
+  - DB_DATABASE=default
+  - DB_USERNAME=default
+  - DB_PASSWORD=secret
+  - APP_DEBUG=true
+
+providers:
+  - Spatie\Permission\PermissionServiceProvider
+  - Laravel\Passport\PassportServiceProvider
+  - EscolaLms\Core\EscolaLmsServiceProvider
+  - EscolaLms\Auth\EscolaLmsAuthServiceProvider
+  - EscolaLms\Scorm\EscolaLmsScormServiceProvider
+  - EscolaLms\Categories\EscolaLmsCategoriesServiceProvider
+  - EscolaLms\Courses\EscolaLmsCourseServiceProvider
+  - EscolaLms\Tags\EscolaLmsTagsServiceProvider
+  - ProtoneMedia\LaravelFFMpeg\Support\ServiceProvider

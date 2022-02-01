@@ -1,0 +1,19 @@
+env:
+  - DB_CONNECTION=mysql
+  - DB_HOST=mysql
+  - DB_PORT=3306
+  - DB_DATABASE=database
+  - DB_USERNAME=username
+  - DB_PASSWORD=password
+  - APP_DEBUG=true
+
+providers:
+  - Spatie\Permission\PermissionServiceProvider
+  - Laravel\Passport\PassportServiceProvider
+  - EscolaLms\Core\EscolaLmsServiceProvider
+  - EscolaLms\Auth\EscolaLmsAuthServiceProvider
+  - EscolaLms\Scorm\EscolaLmsScormServiceProvider
+  - EscolaLms\Categories\EscolaLmsCategoriesServiceProvider
+  - EscolaLms\Courses\EscolaLmsCourseServiceProvider
+  - EscolaLms\Tags\EscolaLmsTagsServiceProvider
+  - ProtoneMedia\LaravelFFMpeg\Support\ServiceProvider
