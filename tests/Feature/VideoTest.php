@@ -2,7 +2,6 @@
 
 namespace EscolaLms\Video\Tests\Feature;
 
-use EscolaLms\Auth\Models\User;
 use EscolaLms\Courses\Models\Course;
 use EscolaLms\Courses\Models\Lesson;
 use EscolaLms\Courses\Models\Topic;
@@ -12,8 +11,10 @@ use EscolaLms\Video\Events\ProcessVideoStarted;
 use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Tests\TestCase;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
 class VideoTest extends TestCase
@@ -115,7 +116,9 @@ class VideoTest extends TestCase
         $video->save();
         $video->topic()->save($topic);
 
-        $job = new ProcessVideo($video, $this->user);
+        $this->expectException(\Exception::class);
+
+        $job = new ProcessVideo($video, $this->user, $disk);
         $job->handle();
 
         $video->refresh();

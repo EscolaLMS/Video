@@ -22,6 +22,21 @@ class ProcessVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 5;
+
+    /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 18000;
+
+
     protected Video $video;
     protected Topic $topic;
     protected Authenticatable $user;
@@ -43,27 +58,16 @@ class ProcessVideo implements ShouldQueue
         $dir = dirname($input);
         $hlsPath = $dir . '/hls.m3u8';
 
-        try {
-            ProcessVideoStarted::dispatch($this->user, $topic);
+        ProcessVideoStarted::dispatch($this->user, $topic);
 
-            $this->clearDirectory($dir, $video->value);
+        $this->clearDirectory($dir, $video->value);
 
-            $this->process($video, $input, $hlsPath);
+        $this->process($video, $input, $hlsPath);
 
-            $this->updateVideoState(['ffmpeg' => [
-                'state' => 'starting'
-            ]]);
-            $topic->save();
-        } catch (\Exception $exception) {
-            $this->updateVideoState(['ffmpeg' => [
-                'state' => 'error',
-                'message' => $exception->getMessage()
-            ]]);
-
-            ProcessVideoFailed::dispatch($this->user, $topic);
-
-            return false;
-        }
+        $this->updateVideoState(['ffmpeg' => [
+            'state' => 'starting'
+        ]]);
+        $topic->save();
 
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'finished',
@@ -71,6 +75,16 @@ class ProcessVideo implements ShouldQueue
         ]]);
 
         return true;
+    }
+
+    public function failed(\Exception $exception)
+    {
+        $this->updateVideoState(['ffmpeg' => [
+            'state' => 'error',
+            'message' => $exception->getMessage()
+        ]]);
+
+        ProcessVideoFailed::dispatch($this->user, $this->topic);
     }
 
     private function getFFMpeg(string $input): HLSExporter
