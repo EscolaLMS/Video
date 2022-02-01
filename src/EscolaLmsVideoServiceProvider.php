@@ -42,7 +42,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
                 ]]);
                 $topic->active = false;
                 $topic->save();
-                ProcessVideo::dispatch($video);
+                ProcessVideo::dispatch($video, $event->getUser());
             }
         }));
 

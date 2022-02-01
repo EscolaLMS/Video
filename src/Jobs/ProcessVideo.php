@@ -3,10 +3,13 @@
 namespace EscolaLms\Video\Jobs;
 
 use EscolaLms\Courses\Models\Topic;
+use EscolaLms\Video\Events\ProcessVideoFailed;
+use EscolaLms\Video\Events\ProcessVideoStarted;
 use EscolaLms\Video\Models\Video;
 use FFMpeg\Exception\RuntimeException;
 use FFMpeg\Format\Video\X264;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -21,12 +24,14 @@ class ProcessVideo implements ShouldQueue
 
     protected Video $video;
     protected Topic $topic;
+    protected Authenticatable $user;
     protected string $disk;
 
-    public function __construct(Video $video, string $disk = 'local')
+    public function __construct(Video $video, Authenticatable $user, string $disk = 'local')
     {
         $this->video = $video;
         $this->topic = $video->topic;
+        $this->user = $user;
         $this->disk = $disk;
     }
 
@@ -47,12 +52,15 @@ class ProcessVideo implements ShouldQueue
                 'state' => 'starting'
             ]]);
             $topic->save();
+
+            ProcessVideoStarted::dispatch($this->user, $topic);
         } catch (RuntimeException $exception) {
             $this->updateVideoState(['ffmpeg' => [
                 'state' => 'error',
                 'message' => $exception->getMessage()
             ]]);
 
+            ProcessVideoFailed::dispatch($this->user, $topic);
             return false;
         }
 

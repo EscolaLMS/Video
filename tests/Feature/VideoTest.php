@@ -2,10 +2,13 @@
 
 namespace EscolaLms\Video\Tests\Feature;
 
+use EscolaLms\Auth\Models\User;
 use EscolaLms\Courses\Models\Course;
 use EscolaLms\Courses\Models\Lesson;
 use EscolaLms\Courses\Models\Topic;
 use EscolaLms\TopicTypes\Events\TopicTypeChanged;
+use EscolaLms\Video\Events\ProcessVideoFailed;
+use EscolaLms\Video\Events\ProcessVideoStarted;
 use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Tests\TestCase;
@@ -15,6 +18,12 @@ use Illuminate\Support\Facades\Storage;
 
 class VideoTest extends TestCase
 {
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->user = config('auth.providers.users.model')::factory()->create();
+    }
+
     public function diskDataProvider()
     {
         return [
@@ -30,7 +39,7 @@ class VideoTest extends TestCase
     public function testSuccessProcessVideo(string $disk)
     {
         Storage::fake($disk);
-        Event::fake(TopicTypeChanged::class);
+        Event::fake([TopicTypeChanged::class, ProcessVideoStarted::class, ProcessVideoFailed::class]);
 
         $course = Course::factory()->create();
         $lesson = Lesson::factory()->create(['course_id' => $course->getKey()]);
@@ -60,7 +69,7 @@ class VideoTest extends TestCase
         $video->save();
         $video->topic()->save($topic);
 
-        $job = new ProcessVideo($video, $disk);
+        $job = new ProcessVideo($video, $this->user, $disk);
         $job->handle();
 
         $video->refresh();
@@ -71,6 +80,9 @@ class VideoTest extends TestCase
         $fullPlaylistPath = Storage::disk($disk)->path($json['ffmpeg']['path']);
         $this->assertFileExists($fullPlaylistPath);
         $this->assertEquals('finished', $json['ffmpeg']['state']);
+
+        Event::assertNotDispatched(ProcessVideoFailed::class);
+        Event::assertDispatched(ProcessVideoStarted::class);
     }
 
     /**
@@ -79,7 +91,7 @@ class VideoTest extends TestCase
     public function testFailProcessVideo(string $disk)
     {
         Storage::fake($disk);
-        Event::fake(TopicTypeChanged::class);
+        Event::fake([TopicTypeChanged::class, ProcessVideoStarted::class, ProcessVideoFailed::class]);
 
         $course = Course::factory()->create();
         $lesson = Lesson::factory()->create(['course_id' => $course->getKey()]);
@@ -103,12 +115,15 @@ class VideoTest extends TestCase
         $video->save();
         $video->topic()->save($topic);
 
-        $job = new ProcessVideo($video);
+        $job = new ProcessVideo($video, $this->user);
         $job->handle();
 
         $video->refresh();
         $json = $video->topic->json;
 
         $this->assertEquals('error', $json['ffmpeg']['state']);
+
+        Event::assertNotDispatched(ProcessVideoStarted::class);
+        Event::assertDispatched(ProcessVideoFailed::class);
     }
 }
