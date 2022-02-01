@@ -81,8 +81,8 @@ class VideoTest extends TestCase
         $this->assertFileExists($fullPlaylistPath);
         $this->assertEquals('finished', $json['ffmpeg']['state']);
 
-        Event::assertNotDispatched(ProcessVideoFailed::class);
         Event::assertDispatched(ProcessVideoStarted::class);
+        Event::assertNotDispatched(ProcessVideoFailed::class);
     }
 
     /**
@@ -123,7 +123,7 @@ class VideoTest extends TestCase
 
         $this->assertEquals('error', $json['ffmpeg']['state']);
 
-        Event::assertNotDispatched(ProcessVideoStarted::class);
+        Event::assertDispatched(ProcessVideoStarted::class);
         Event::assertDispatched(ProcessVideoFailed::class);
     }
 }

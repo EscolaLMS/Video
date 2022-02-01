@@ -43,24 +43,25 @@ class ProcessVideo implements ShouldQueue
         $dir = dirname($input);
         $hlsPath = $dir . '/hls.m3u8';
 
-        $this->clearDirectory($dir, $video->value);
-
         try {
+            ProcessVideoStarted::dispatch($this->user, $topic);
+
+            $this->clearDirectory($dir, $video->value);
+
             $this->process($video, $input, $hlsPath);
 
             $this->updateVideoState(['ffmpeg' => [
                 'state' => 'starting'
             ]]);
             $topic->save();
-
-            ProcessVideoStarted::dispatch($this->user, $topic);
-        } catch (RuntimeException $exception) {
+        } catch (\Exception $exception) {
             $this->updateVideoState(['ffmpeg' => [
                 'state' => 'error',
                 'message' => $exception->getMessage()
             ]]);
 
             ProcessVideoFailed::dispatch($this->user, $topic);
+
             return false;
         }
 
