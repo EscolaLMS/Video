@@ -116,10 +116,10 @@ class VideoTest extends TestCase
         $video->save();
         $video->topic()->save($topic);
 
-        Queue::failing(function (JobFailed $event) {
-            $this->assertFalse($event->job->isReleased());
-        });
         $this->expectException(\Exception::class);
+
+        $job = new ProcessVideo($video, $this->user, $disk);
+        $job->handle();
 
         $video->refresh();
         $json = $video->topic->json;
