@@ -40,7 +40,6 @@ class Video extends TopicContentVideo
         'poster',
         'width',
         'height',
-        'hls',
     ];
 
     protected $casts = [
@@ -49,16 +48,10 @@ class Video extends TopicContentVideo
         'poster' => 'string',
         'width' => 'integer',
         'height' => 'integer',
-        'hls' => 'string'
     ];
 
-    protected $appends = ['url', 'poster_url', 'hls_url'];
-
-    public function getHlsUrlAttribute(): ?string
-    {
-        if (isset($this->hls)) {
-            return url(Storage::url($this->hls));
-        }
-        return null;
-    }
+    protected $appends = [
+        'url',
+        'poster_url',
+    ];
 }

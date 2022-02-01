@@ -6,6 +6,7 @@
     "php": ">=7.4 | >=8.0",
     "escolalms/courses": "^0",
     "escolalms/topic-types": "^0",
+    "escolalms/settings": "^0",
     "laravel/framework": ">=8.0",
     "league/flysystem-aws-s3-v3": "^1.0",
     "pbmedia/laravel-ffmpeg": "^7"
