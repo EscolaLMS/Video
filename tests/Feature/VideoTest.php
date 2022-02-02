@@ -16,9 +16,12 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class VideoTest extends TestCase
 {
+    use DatabaseTransactions;
+    
     public function setUp(): void
     {
         parent::setUp();
