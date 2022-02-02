@@ -5,6 +5,7 @@ namespace EscolaLms\Video\Tests\Feature;
 use EscolaLms\Auth\Database\Seeders\AuthPermissionSeeder;
 use EscolaLms\Core\Tests\CreatesUsers;
 use EscolaLms\Settings\Database\Seeders\PermissionTableSeeder;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use EscolaLms\Video\Providers\SettingsServiceProvider;
 use EscolaLms\Video\Tests\TestCase;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Config;
 
 class SettingsTest extends TestCase
 {
-    use CreatesUsers, WithoutMiddleware;
+    use DatabaseTransactions, CreatesUsers, WithoutMiddleware;
 
     protected function setUp(): void
     {

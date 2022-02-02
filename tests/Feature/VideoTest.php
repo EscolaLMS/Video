@@ -11,6 +11,7 @@ use EscolaLms\Video\Events\ProcessVideoStarted;
 use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Tests\TestCase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\Storage;
 
 class VideoTest extends TestCase
 {
+    use DatabaseTransactions;
+    
     public function setUp(): void
     {
         parent::setUp();
