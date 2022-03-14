@@ -11,31 +11,25 @@ abstract class ProcessVideoEvent
 {
     use Dispatchable, SerializesModels;
 
-    private Authenticatable $user;
+    private ?Authenticatable $user;
     private Topic $topic;
 
     /**
-     * @param Authenticatable $user
+     * @param Authenticatable|null $user
      * @param Topic $topic
      */
-    public function __construct(Authenticatable $user, Topic $topic)
+    public function __construct(?Authenticatable $user, Topic $topic)
     {
         $this->user = $user;
         $this->topic = $topic;
     }
 
-    /**
-     * @return Topic
-     */
     public function getTopic(): Topic
     {
         return $this->topic;
     }
 
-    /**
-     * @return Authenticatable
-     */
-    public function getUser(): Authenticatable
+    public function getUser(): ?Authenticatable
     {
         return $this->user;
     }

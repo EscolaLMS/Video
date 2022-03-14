@@ -22,32 +22,20 @@ class ProcessVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The number of times the job may be attempted.
-     *
-     * @var int
-     */
     public $tries = 5;
-
-    /**
-     * The number of seconds the job can run before timing out.
-     *
-     * @var int
-     */
     public $timeout = 18000;
-
 
     protected Video $video;
     protected Topic $topic;
-    protected Authenticatable $user;
+    protected ?Authenticatable $user;
     protected string $disk;
 
-    public function __construct(Video $video, Authenticatable $user, string $disk = 'local')
+    public function __construct(Video $video, ?Authenticatable $user, string $disk = null)
     {
         $this->video = $video;
         $this->topic = $video->topic;
         $this->user = $user;
-        $this->disk = $disk;
+        $this->disk = $disk ?? config('escolalms_video.disk');
     }
 
     public function handle(): bool
