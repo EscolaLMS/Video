@@ -28,21 +28,19 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
     public function boot()
     {
         Event::listen(queueable(function (TopicTypeChanged $event) {
-            if (!($event->getTopicContent() instanceof \EscolaLms\TopicTypes\Models\TopicContent\Video)) {
-                return;
-            }
+            if (($event->getTopicContent() instanceof \EscolaLms\TopicTypes\Models\TopicContent\Video)) {
+                $video = Video::findOrFail($event->getTopicContent()->getKey());
+                $topic = $video->topic;
 
-            $video = Video::findOrFail($event->getTopicContent()->getKey());
-            $topic = $video->topic;
-
-            if (isset($topic)) {
-                $arr = is_array($topic->json) ? $topic->json : [];
-                $topic->json = array_merge($arr, ['ffmpeg' => [
-                    'state' => 'queue'
-                ]]);
-                $topic->active = false;
-                $topic->save();
-                ProcessVideo::dispatch($video, $event->getUser());
+                if (isset($topic)) {
+                    $arr = is_array($topic->json) ? $topic->json : [];
+                    $topic->json = array_merge($arr, ['ffmpeg' => [
+                        'state' => 'queue'
+                    ]]);
+                    $topic->active = false;
+                    $topic->save();
+                    ProcessVideo::dispatch($video, $event->getUser());
+                }
             }
         }));
 

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'disk' => env('VIDEO_DISK', config('filesystems.default')),
     'bitrates' => [
         [
             'kiloBitrate' => 250,
