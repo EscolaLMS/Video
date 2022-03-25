@@ -26,6 +26,8 @@ class VideoTest extends TestCase
     {
         parent::setUp();
         $this->user = config('auth.providers.users.model')::factory()->create();
+
+        Event::fake([TopicTypeChanged::class, ProcessVideoStarted::class, ProcessVideoFailed::class]);
     }
 
     public function diskDataProvider(): array
@@ -43,7 +45,6 @@ class VideoTest extends TestCase
     public function testSuccessProcessVideo(string $disk)
     {
         Storage::fake($disk);
-        Event::fake([TopicTypeChanged::class, ProcessVideoStarted::class, ProcessVideoFailed::class]);
 
         $course = Course::factory()->create();
         $lesson = Lesson::factory()->create(['course_id' => $course->getKey()]);
@@ -99,7 +100,6 @@ class VideoTest extends TestCase
     public function testFailProcessVideo(string $disk)
     {
         Storage::fake($disk);
-        Event::fake([TopicTypeChanged::class, ProcessVideoStarted::class, ProcessVideoFailed::class]);
 
         $course = Course::factory()->create();
         $lesson = Lesson::factory()->create(['course_id' => $course->getKey()]);
@@ -148,7 +148,6 @@ class VideoTest extends TestCase
     public function testStateUpdatedFailProcessVideo(string $disk)
     {
         Storage::fake($disk);
-        Event::fake([TopicTypeChanged::class, ProcessVideoStarted::class, ProcessVideoFailed::class]);
 
         $video = $this->makeVideo($disk);
 
