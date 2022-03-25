@@ -21,14 +21,14 @@ use Illuminate\Support\Facades\Storage;
 class VideoTest extends TestCase
 {
     use DatabaseTransactions;
-    
+
     public function setUp(): void
     {
         parent::setUp();
         $this->user = config('auth.providers.users.model')::factory()->create();
     }
 
-    public function diskDataProvider()
+    public function diskDataProvider(): array
     {
         return [
             ['s3'],
@@ -85,7 +85,11 @@ class VideoTest extends TestCase
         $this->assertFileExists($fullPlaylistPath);
         $this->assertEquals('finished', $json['ffmpeg']['state']);
 
-        Event::assertDispatched(ProcessVideoStarted::class);
+        Event::assertDispatched(
+            ProcessVideoStarted::class,
+            fn (ProcessVideoStarted $event) =>
+                $event->getUser()->getKey() === $this->user->getKey() && $event->getTopic()->getKey() === $topic->getKey()
+        );
         Event::assertNotDispatched(ProcessVideoFailed::class);
     }
 
@@ -129,7 +133,58 @@ class VideoTest extends TestCase
 
         $this->assertEquals('error', $json['ffmpeg']['state']);
 
-        Event::assertDispatched(ProcessVideoStarted::class);
-        Event::assertDispatched(ProcessVideoFailed::class);
+        Event::assertDispatched(ProcessVideoStarted::class,
+            fn (ProcessVideoStarted $event) =>
+                $event->getUser()->getKey() === $this->user->getKey() && $event->getTopic()->getKey() === $topic->getKey()
+        );
+        Event::assertDispatched(ProcessVideoFailed::class,
+            fn (ProcessVideoStarted $event) =>
+                $event->getUser()->getKey() === $this->user->getKey() && $event->getTopic()->getKey() === $topic->getKey());
+    }
+
+    /**
+     * @dataProvider diskDataProvider
+     */
+    public function testStateUpdatedFailProcessVideo(string $disk)
+    {
+        Storage::fake($disk);
+        Event::fake([TopicTypeChanged::class, ProcessVideoStarted::class, ProcessVideoFailed::class]);
+
+        $video = $this->makeVideo($disk);
+
+        $job = new ProcessVideo($video, $this->user, $disk);
+        $job->failed(new \Exception("Exception message"));
+
+        $json = $video->topic->json;
+        $this->assertEquals('error', $json['ffmpeg']['state']);
+        $this->assertEquals('Exception message', $json['ffmpeg']['message']);
+    }
+
+    private function makeVideo(string $disk): Video
+    {
+        $course = Course::factory()->create();
+        $lesson = Lesson::factory()->create(['course_id' => $course->getKey()]);
+        $topic = Topic::factory()->create(['lesson_id' => $lesson->getKey()]);
+
+        $video = new Video();
+        $path = __DIR__ . '/../samples/video.mp4';
+        $file = fopen($path, 'r');
+        $targetPath = 'video_test/' . Carbon::now()->format('Y_m_d_His') . '/video.mp4';
+
+        if (!Storage::disk($disk)->exists($targetPath)) {
+            $success = Storage::disk($disk)->put($targetPath, $file);
+            $this->assertTrue($success);
+        }
+
+        $fullTargetPath = Storage::disk($disk)->path($targetPath);
+
+        $this->assertFileExists($fullTargetPath);
+
+        $video->value = $targetPath;
+
+        $video->save();
+        $video->topic()->save($topic);
+
+        return $video;
     }
 }
