@@ -49,7 +49,8 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
         }
 
         \EscolaLms\TopicTypes\Http\Resources\TopicType\Client\VideoResource::extend(function($thisObj) {
-            $json = json_decode($thisObj->topic->json, true);
+            $json = $thisObj->topic->json;
+            $json = is_array($json) ? $json : json_decode($json, true);
 
             return [
                 'value' => $json['ffmpeg']['path'] ?? null,
@@ -58,7 +59,8 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
         });
 
         \EscolaLms\TopicTypes\Http\Resources\TopicType\Admin\VideoResource::extend(function($thisObj) {
-            $json = json_decode($thisObj->topic->json, true);
+            $json = $thisObj->topic->json;
+            $json = is_array($json) ? $json : json_decode($json, true);
 
             return [
                 'hls' => $json['ffmpeg']['path'] ?? null,
