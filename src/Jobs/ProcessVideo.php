@@ -14,6 +14,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Exporters\HLSExporter;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
@@ -48,7 +49,7 @@ class ProcessVideo implements ShouldQueue
 
         ProcessVideoStarted::dispatch($this->user, $topic);
 
-        $this->clearDirectory($dir, $video->value);
+        $this->clearDirectory($dir, $video);
 
         $this->process($video, $input, $hlsPath);
 
@@ -120,19 +121,19 @@ class ProcessVideo implements ShouldQueue
         }
     }
 
-    private function clearDirectory(string $dir, string $video): bool
+    private function clearDirectory(string $dir, Video $video): bool
     {
         $storage = Storage::disk($this->disk);
 
         if ($storage->exists($dir)) {
             $files = $storage->allFiles($dir);
-
             foreach ($files as $file) {
-                if ($file === $video) {
-                    continue;
+                if (
+                    ($video->poster !== $file && $video->value !== $file)
+                    || in_array(File::extension($file), ['ts', 'm3u8'])
+                ) {
+                    $storage->delete($file);
                 }
-
-                $storage->delete($file);
             }
         }
 
