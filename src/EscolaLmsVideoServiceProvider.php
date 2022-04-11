@@ -54,7 +54,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 
             return [
                 'value' => $json['ffmpeg']['path'] ?? null,
-                'url' => isset($json['ffmpeg']['path']) ? Storage::disk('local')->url($json['ffmpeg']['path']) : null,
+                'url' => isset($json['ffmpeg']['path']) ? Storage::url($json['ffmpeg']['path']) : null,
             ];
         });
 
@@ -64,7 +64,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 
             return [
                 'hls' => $json['ffmpeg']['path'] ?? null,
-                'hls_url' => isset($json['ffmpeg']['path']) ? Storage::disk('local')->url($json['ffmpeg']['path']) : null,
+                'hls_url' => isset($json['ffmpeg']['path']) ? Storage::url($json['ffmpeg']['path']) : null,
             ];
         });
     }
