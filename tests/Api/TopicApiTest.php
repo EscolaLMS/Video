@@ -56,9 +56,9 @@ class TopicApiTest extends TestCase
             'topicable' => [
                 'id' => $this->topicable->getKey(),
                 'value' => $this->json['ffmpeg']['path'],
-                'url' => Storage::disk('local')->url($this->json['ffmpeg']['path']),
+                'url' => Storage::url($this->json['ffmpeg']['path']),
                 'poster' => 'poster.jpg',
-                'poster_url' => Storage::disk('local')->url('poster.jpg'),
+                'poster_url' => Storage::url('poster.jpg'),
                 'width' => 640,
                 'height' => 480
             ]
@@ -75,15 +75,15 @@ class TopicApiTest extends TestCase
             'topicable' => [
                 'id' => $this->topicable->getKey(),
                 'value' => '1.mp4',
-                'url' => Storage::disk('local')->url('1.mp4'),
+                'url' => Storage::url('1.mp4'),
                 'poster' => 'poster.jpg',
-                'poster_url' => Storage::disk('local')->url('poster.jpg'),
+                'poster_url' => Storage::url('poster.jpg'),
                 'width' => 640,
                 'height' => 480,
                 'created_at' => $this->topicable->created_at,
                 'updated_at' => $this->topicable->updated_at,
                 'hls' => $this->json['ffmpeg']['path'],
-                'hls_url' => Storage::disk('local')->url($this->json['ffmpeg']['path']),
+                'hls_url' => Storage::url($this->json['ffmpeg']['path']),
             ]
         ]);
 
