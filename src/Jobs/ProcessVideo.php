@@ -105,6 +105,8 @@ class ProcessVideo implements ShouldQueue
                 ]]);
             })
             ->save($hlsPath);
+
+        Storage::disk($this->disk)->setVisibility($hlsPath, 'public');
     }
 
     private function updateVideoState($state): void
