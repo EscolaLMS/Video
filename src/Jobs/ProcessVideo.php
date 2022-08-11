@@ -52,6 +52,7 @@ class ProcessVideo implements ShouldQueue
         $this->clearDirectory($dir, $video);
 
         $this->process($video, $input, $hlsPath);
+        $this->makeFilesVisible($dir);
 
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'starting'
@@ -105,8 +106,6 @@ class ProcessVideo implements ShouldQueue
                 ]]);
             })
             ->save($hlsPath);
-
-        Storage::disk($this->disk)->setVisibility($hlsPath, 'public');
     }
 
     private function updateVideoState($state): void
@@ -140,5 +139,12 @@ class ProcessVideo implements ShouldQueue
         }
 
         return true;
+    }
+
+    private function makeFilesVisible(string $dir): void
+    {
+        foreach (Storage::files($dir) as $file) {
+            Storage::disk($this->disk)->setVisibility($file, 'public');
+        }
     }
 }
