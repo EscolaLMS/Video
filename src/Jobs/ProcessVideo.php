@@ -42,6 +42,7 @@ class ProcessVideo implements ShouldQueue
     public function handle(): bool
     {
         $video = $this->video;
+        $this->fixVideoPath($video);
         $topic = $this->topic;
         $input = $video->value;
         $dir = dirname($input);
@@ -125,7 +126,7 @@ class ProcessVideo implements ShouldQueue
     private function clearDirectory(string $dir, Video $video): bool
     {
         $storage = Storage::disk($this->disk);
-
+        
         if ($storage->exists($dir)) {
             $files = $storage->allFiles($dir);
             foreach ($files as $file) {
@@ -145,6 +146,16 @@ class ProcessVideo implements ShouldQueue
     {
         foreach (Storage::files($dir) as $file) {
             Storage::disk($this->disk)->setVisibility($file, 'public');
+        }
+    }
+
+    private function fixVideoPath(Video $video): void
+    {
+        $expectedVideoPath = $video->generateStoragePath() . DIRECTORY_SEPARATOR . basename($video->value);
+        if ($expectedVideoPath !== $video->value) {
+            Storage::copy($video->value, $expectedVideoPath);
+            $video->value = $expectedVideoPath;
+            $video->save();
         }
     }
 }
