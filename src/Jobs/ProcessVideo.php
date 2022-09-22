@@ -126,6 +126,7 @@ class ProcessVideo implements ShouldQueue
     private function clearDirectory(string $dir, Video $video): bool
     {
         $storage = Storage::disk($this->disk);
+        
         if ($storage->exists($dir)) {
             $files = $storage->allFiles($dir);
             foreach ($files as $file) {
