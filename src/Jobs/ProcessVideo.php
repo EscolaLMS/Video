@@ -42,10 +42,9 @@ class ProcessVideo implements ShouldQueue
     public function handle(): bool
     {
         $video = $this->video;
-        $this->fixVideoPath($video);
         $topic = $this->topic;
         $input = $video->value;
-        $dir = dirname($input);
+        $dir = $video->generateStoragePath();
         $hlsPath = $dir . '/hls.m3u8';
 
         ProcessVideoStarted::dispatch($this->user, $topic);
@@ -146,16 +145,6 @@ class ProcessVideo implements ShouldQueue
     {
         foreach (Storage::files($dir) as $file) {
             Storage::disk($this->disk)->setVisibility($file, 'public');
-        }
-    }
-
-    private function fixVideoPath(Video $video): void
-    {
-        $expectedVideoPath = $video->generateStoragePath() . DIRECTORY_SEPARATOR . basename($video->value);
-        if ($expectedVideoPath !== $video->value) {
-            Storage::copy($video->value, $expectedVideoPath);
-            $video->value = $expectedVideoPath;
-            $video->save();
         }
     }
 }
