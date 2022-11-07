@@ -58,6 +58,10 @@ class SettingsTest extends TestCase
                             ]
                         ],
                     ],
+                    [
+                        'key' => "{$configKey}.enable",
+                        'value' => true,
+                    ],
                 ]
             ]
         );
@@ -89,7 +93,18 @@ class SettingsTest extends TestCase
                         ]
                     ],
                     'readonly' => false,
+                ],
+                'enable' => [
+                    'full_key' => "$configKey.enable",
+                    'key' => 'enable',
+                    'public' => false,
+                    'rules' => [
+                        'boolean'
+                    ],
+                    'value' => true,
+                    'readonly' => false,
                 ]
+
             ],
         ]);
 
@@ -109,7 +124,8 @@ class SettingsTest extends TestCase
                     'kiloBitrate' => 500,
                     'scale' => '1280:720'
                 ]
-            ]
+            ],
+            'enable' => true
         ]);
 
     }

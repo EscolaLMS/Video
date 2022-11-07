@@ -13,14 +13,16 @@ use EscolaLms\Tags\EscolaLmsTagsServiceProvider;
 use EscolaLms\TopicTypes\EscolaLmsTopicTypesServiceProvider;
 use EscolaLms\Video\EscolaLmsVideoServiceProvider;
 use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Laravel\Passport\Passport;
 use Laravel\Passport\PassportServiceProvider;
-use Orchestra\Testbench\Concerns\CreatesApplication;
 use ProtoneMedia\LaravelFFMpeg\Support\ServiceProvider as FFMpegServiceProvider;
 use Spatie\Permission\PermissionServiceProvider;
 
 class TestCase extends \EscolaLms\Core\Tests\TestCase
 {
+    use DatabaseTransactions;
+
     protected $response;
 
     protected function setUp(): void

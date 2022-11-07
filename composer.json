@@ -29,7 +29,9 @@
   "autoload": {
     "psr-4": {
       "EscolaLms\\Video\\": "src",
-      "EscolaLms\\Video\\Tests\\": "tests"
+      "EscolaLms\\Video\\Tests\\": "tests",
+      "EscolaLms\\Video\\Database\\Factories\\": "database/factories",
+      "EscolaLms\\Video\\Database\\Seeders\\": "database/seeders"
     }
   },
   "extra": {

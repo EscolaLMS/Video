@@ -17,11 +17,8 @@ class SettingsServiceProvider extends ServiceProvider
                 $this->app->register(EscolaLmsSettingsServiceProvider::class);
             }
 
-            AdministrableConfig::registerConfig(
-                self::CONFIG_KEY . '.bitrates',
-                ['array'],
-                false
-            );
+            AdministrableConfig::registerConfig(self::CONFIG_KEY . '.bitrates', ['array'], false);
+            AdministrableConfig::registerConfig(self::CONFIG_KEY . '.enable', ['boolean'], false);
         }
     }
 }
