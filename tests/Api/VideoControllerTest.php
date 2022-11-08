@@ -9,11 +9,12 @@ use EscolaLms\Courses\Models\Topic;
 use EscolaLms\Video\Database\Seeders\VideoPermissionSeeder;
 use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Tests\TestCase;
+use EscolaLms\Video\Tests\VideoTesting;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class VideoControllerTest extends TestCase
 {
-    use DatabaseTransactions, CreatesUsers;
+    use DatabaseTransactions, CreatesUsers, VideoTesting;
 
     protected function setUp(): void
     {
