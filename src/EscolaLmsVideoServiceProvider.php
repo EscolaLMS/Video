@@ -78,20 +78,20 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
             $json = $thisObj->topic->json;
             $json = is_array($json) ? $json : json_decode($json, true);
 
-            return [
+            return config('escolalms_video.enable') ? [
                 'value' => $json['ffmpeg']['path'] ?? null,
                 'url' => isset($json['ffmpeg']['path']) ? Storage::url($json['ffmpeg']['path']) : null,
-            ];
+            ] : [];
         });
 
         VideoAdminResource::extend(function($thisObj) {
             $json = $thisObj->topic->json;
             $json = is_array($json) ? $json : json_decode($json, true);
 
-            return [
+            return config('escolalms_video.enable') ? [
                 'hls' => $json['ffmpeg']['path'] ?? null,
                 'hls_url' => isset($json['ffmpeg']['path']) ? Storage::url($json['ffmpeg']['path']) : null,
-            ];
+            ] : [];
         });
     }
 }
