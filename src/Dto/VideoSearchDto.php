@@ -14,6 +14,7 @@ class VideoSearchDto extends CriteriaDto implements DtoContract, InstantiateFrom
     public static function instantiateFromRequest(Request $request): self
     {
         $criteria = new Collection();
+
         if ($request->get('state')) {
             $criteria->push(
                 new HasCriterion(

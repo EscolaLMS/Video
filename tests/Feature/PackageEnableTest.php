@@ -11,6 +11,7 @@ use EscolaLms\Video\Tests\VideoTesting;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Testing\Fluent\AssertableJson;
 
 class PackageEnableTest extends TestCase
 {
@@ -40,17 +41,22 @@ class PackageEnableTest extends TestCase
         $this->actingAs($this->makeAdmin())
             ->getJson('/api/courses/' . $course->getKey() . '/program')
             ->assertOk()
-            ->assertJsonStructure(['data' => [
-                'lessons' => [[
-                    'topics' =>[[
-                        'topicable' => [
-                            'value',
-                            'url',
-                            'hls',
-                            'hls_url',
-                        ]
-                    ]]
-                ]]
-            ]]);
+            ->assertJson(fn(AssertableJson $json) => $json->has('data', fn($json) =>
+                $json->has('lessons', fn($json) =>
+                    $json->each(fn($json) =>
+                        $json->has('topics', fn($json) =>
+                            $json->each(fn($json) =>
+                                $json->has('topicable', fn($json) => $json
+                                    ->has('url')
+                                    ->has('value')
+                                    ->has('hls')
+                                    ->has('hls_url')
+                                    ->etc()
+                                )->etc()
+                            )
+                        )->etc()
+                    )
+                )->etc()
+            )->etc());
     }
 }
