@@ -3,7 +3,7 @@
 namespace EscolaLms\Video\Models;
 
 use EscolaLms\TopicTypes\Models\TopicContent\Video as TopicContentVideo;
-use Illuminate\Support\Facades\Storage;
+use EscolaLms\Video\Database\Factories\VideoFactory;
 
 /**
  * @OA\Schema(
@@ -54,4 +54,9 @@ class Video extends TopicContentVideo
         'url',
         'poster_url',
     ];
+
+    protected static function newFactory()
+    {
+        return VideoFactory::new();
+    }
 }
