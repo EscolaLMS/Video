@@ -6,7 +6,7 @@ use EscolaLms\Courses\Models\Topic;
 use EscolaLms\Video\Events\ProcessVideoFailed;
 use EscolaLms\Video\Events\ProcessVideoStarted;
 use EscolaLms\Video\Models\Video;
-use FFMpeg\Exception\RuntimeException;
+use Exception;
 use FFMpeg\Format\Video\X264;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -67,7 +67,7 @@ class ProcessVideo implements ShouldQueue
         return true;
     }
 
-    public function failed(\Exception $exception)
+    public function failed(Exception $exception)
     {
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'error',
@@ -85,12 +85,23 @@ class ProcessVideo implements ShouldQueue
             ->open($input)
             ->exportForHLS();
 
+        if (empty($bitRates)) {
+            return $ffmpeg;
+        }
+
         foreach ($bitRates as $bitRate) {
-            $value = (new X264)->setKiloBitrate($bitRate['kiloBitrate']);
-            $ffmpeg->addFormat($value, function ($media) use ($bitRate) {
-                $scale = 'scale=' . $bitRate['scale'];
-                $media->addFilter($scale);
-            });
+            if (isset($bitRate['kiloBitrate'])) {
+                $value = (new X264)->setKiloBitrate($bitRate['kiloBitrate']);
+
+                if (isset($bitRate['scale'])) {
+                    $ffmpeg->addFormat($value, function ($media) use ($bitRate) {
+                        $scale = 'scale=' . $bitRate['scale'];
+                        $media->addFilter($scale);
+                    });
+                } else {
+                    $ffmpeg->addFormat($value);
+                }
+            }
         }
 
         return $ffmpeg;
