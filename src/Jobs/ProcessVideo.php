@@ -14,7 +14,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Exporters\HLSExporter;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
@@ -37,6 +40,9 @@ class ProcessVideo implements ShouldQueue
         $this->topic = $video->topic;
         $this->user = $user;
         $this->disk = $disk ?? config('escolalms_video.disk');
+
+        $queue = $this->configQueue();
+        $this->onConnection($queue);
     }
 
     public function handle(): bool
@@ -51,13 +57,13 @@ class ProcessVideo implements ShouldQueue
 
         $this->clearDirectory($dir, $video);
 
-        $this->process($video, $input, $hlsPath);
-        $this->makeFilesVisible($dir);
-
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'starting'
         ]]);
         $topic->save();
+
+        $this->process($video, $input, $hlsPath);
+        $this->makeFilesVisible($dir);
 
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'finished',
@@ -73,6 +79,8 @@ class ProcessVideo implements ShouldQueue
             'state' => 'error',
             'message' => $exception->getMessage()
         ]]);
+
+        Log::error($exception->getMessage());
 
         ProcessVideoFailed::dispatch($this->user, $this->topic);
     }
@@ -136,7 +144,7 @@ class ProcessVideo implements ShouldQueue
     private function clearDirectory(string $dir, Video $video): bool
     {
         $storage = Storage::disk($this->disk);
-        
+
         if ($storage->exists($dir)) {
             $files = $storage->allFiles($dir);
             foreach ($files as $file) {
@@ -157,5 +165,29 @@ class ProcessVideo implements ShouldQueue
         foreach (Storage::files($dir) as $file) {
             Storage::disk($this->disk)->setVisibility($file, 'public');
         }
+    }
+
+    private function configQueue(): string
+    {
+        $environment = App::environment();
+        $videoQueue = Config::get('escolalms_video.queue.connection');
+
+        if (!$videoQueue['name'] || !$videoQueue['config']) {
+            return Config::get('queue.default');
+        }
+
+        // connection
+        Config::set('queue.connections', $videoQueue['name']);
+        Config::set('queue.connections.' . $videoQueue['name'], $videoQueue['config']);
+
+        // horizon
+        if (Config::get('horizon.environments.' . $environment . '.supervisor-1')) {
+            Config::set('horizon.environments.' . $environment . '.supervisor-1.connection', $videoQueue['name']);
+        }
+        elseif (Config::get('horizon.defaults.supervisor-1')) {
+            Config::set('horizon.defaults.supervisor-1.connection', $videoQueue['name']);
+        }
+
+        return $videoQueue['name'];
     }
 }
