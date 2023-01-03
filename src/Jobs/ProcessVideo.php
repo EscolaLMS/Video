@@ -41,8 +41,8 @@ class ProcessVideo implements ShouldQueue
         $this->user = $user;
         $this->disk = $disk ?? config('escolalms_video.disk');
 
-        $queue = $this->configQueue();
-        $this->onConnection($queue);
+        $this->onConnection(config('escolalms_video.queue_connection'));
+        $this->onQueue(config('escolalms_video.queue'));
     }
 
     public function handle(): bool
@@ -165,29 +165,5 @@ class ProcessVideo implements ShouldQueue
         foreach (Storage::files($dir) as $file) {
             Storage::disk($this->disk)->setVisibility($file, 'public');
         }
-    }
-
-    private function configQueue(): string
-    {
-        $environment = App::environment();
-        $videoQueue = Config::get('escolalms_video.queue.connection');
-
-        if (!$videoQueue['name'] || !$videoQueue['config']) {
-            return Config::get('queue.default');
-        }
-
-        // connection
-        Config::set('queue.connections', $videoQueue['name']);
-        Config::set('queue.connections.' . $videoQueue['name'], $videoQueue['config']);
-
-        // horizon
-        if (Config::get('horizon.environments.' . $environment . '.supervisor-1')) {
-            Config::set('horizon.environments.' . $environment . '.supervisor-1.connection', $videoQueue['name']);
-        }
-        elseif (Config::get('horizon.defaults.supervisor-1')) {
-            Config::set('horizon.defaults.supervisor-1.connection', $videoQueue['name']);
-        }
-
-        return $videoQueue['name'];
     }
 }

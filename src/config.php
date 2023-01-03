@@ -14,16 +14,6 @@ return [
             'kiloBitrate' => 1000,
         ]
     ],
-    'queue' => [
-        'connection' => [
-            'name' => 'video_process_job',
-            'config' => [
-                'driver' => 'redis',
-                'connection' => 'default',
-                'queue' => env('REDIS_QUEUE', 'default'),
-                'retry_after' => 1,
-                'block_for' => null,
-            ],
-        ]
-    ]
+    'queue' => env('VIDEO_QUEUE', 'queue-long-job'),
+    'queue_connection' =>  env('VIDEO_QUEUE_CONNECTION', 'redis-long-job'),
 ];
