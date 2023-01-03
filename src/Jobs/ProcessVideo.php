@@ -15,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Exporters\HLSExporter;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
@@ -37,6 +38,9 @@ class ProcessVideo implements ShouldQueue
         $this->topic = $video->topic;
         $this->user = $user;
         $this->disk = $disk ?? config('escolalms_video.disk');
+
+        $this->onConnection(config('escolalms_video.queue_connection'));
+        $this->onQueue(config('escolalms_video.queue'));
     }
 
     public function handle(): bool
@@ -51,13 +55,13 @@ class ProcessVideo implements ShouldQueue
 
         $this->clearDirectory($dir, $video);
 
-        $this->process($video, $input, $hlsPath);
-        $this->makeFilesVisible($dir);
-
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'starting'
         ]]);
         $topic->save();
+
+        $this->process($video, $input, $hlsPath);
+        $this->makeFilesVisible($dir);
 
         $this->updateVideoState(['ffmpeg' => [
             'state' => 'finished',
@@ -73,6 +77,8 @@ class ProcessVideo implements ShouldQueue
             'state' => 'error',
             'message' => $exception->getMessage()
         ]]);
+
+        Log::error($exception->getMessage());
 
         ProcessVideoFailed::dispatch($this->user, $this->topic);
     }
@@ -136,7 +142,7 @@ class ProcessVideo implements ShouldQueue
     private function clearDirectory(string $dir, Video $video): bool
     {
         $storage = Storage::disk($this->disk);
-        
+
         if ($storage->exists($dir)) {
             $files = $storage->allFiles($dir);
             foreach ($files as $file) {
