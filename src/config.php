@@ -3,6 +3,7 @@
 return [
     'disk' => env('VIDEO_DISK', config('filesystems.default')),
     'enable' => env('VIDEO_PROCESSING_ENABLE', true),
+    'non_strict_value' => env('VIDEO_NON_STRICT_VALUE', false),
     'bitrates' => [
         [
             'kiloBitrate' => 250,

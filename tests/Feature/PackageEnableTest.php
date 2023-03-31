@@ -20,6 +20,7 @@ class PackageEnableTest extends TestCase
     protected function setUp(): void
     {
         putenv("VIDEO_PROCESSING_ENABLE=true");
+        putenv("VIDEO_NON_STRICT_VALUE=false");
         parent::setUp();
 
         $this->seed(VideoPermissionSeeder::class);

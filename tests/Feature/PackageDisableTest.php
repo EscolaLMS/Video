@@ -19,6 +19,7 @@ class PackageDisableTest extends TestCase
 
     protected function setUp(): void
     {
+        putenv("VIDEO_NON_STRICT_VALUE=false");
         putenv("VIDEO_PROCESSING_ENABLE=false");
         parent::setUp();
 

@@ -11,7 +11,7 @@ use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Providers\SettingsServiceProvider;
 use EscolaLms\Video\Repositories\Contracts\VideoRepositoryContract;
 use EscolaLms\Video\Repositories\VideoRepository;
-use Illuminate\Support\Facades\Storage;
+use EscolaLms\Video\Strategies\VideoStrategyResourceContext;
 use function Illuminate\Events\queueable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -75,24 +75,11 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 
     private function extendResources(): void
     {
-        VideoClientResource::extend(function($thisObj) {
-            $json = $thisObj->topic->json;
-            $json = is_array($json) ? $json : json_decode($json, true);
-
-            return config('escolalms_video.enable') ? [
-                'value' => $json['ffmpeg']['path'] ?? null,
-                'url' => isset($json['ffmpeg']['path']) ? Storage::url($json['ffmpeg']['path']) : null,
-            ] : [];
+        VideoClientResource::extend(function ($thisObj) {
+            return (new VideoStrategyResourceContext())->getStrategy()->clientResource($thisObj);
         });
-
-        VideoAdminResource::extend(function($thisObj) {
-            $json = $thisObj->topic->json;
-            $json = is_array($json) ? $json : json_decode($json, true);
-
-            return config('escolalms_video.enable') ? [
-                'hls' => $json['ffmpeg']['path'] ?? null,
-                'hls_url' => isset($json['ffmpeg']['path']) ? Storage::url($json['ffmpeg']['path']) : null,
-            ] : [];
+        VideoAdminResource::extend(function ($thisObj) {
+            return (new VideoStrategyResourceContext())->getStrategy()->adminResource($thisObj);
         });
     }
 }
