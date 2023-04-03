@@ -8,19 +8,19 @@ class VideoStrategyResourceContext
 
     public function __construct()
     {
-        $this->strategy = $this->resolve();
+        $this->resolve();
     }
 
-    private function resolve(): VideoResourceStrategy
+    private function resolve(): void
     {
-        if (config('escolalms_video.non_strict_value')) {
-            return new VideoNonStrictValueResourceStrategy();
-        }
-        if (config('escolalms_video.enable')) {
-            return new VideoEnableProcessingStrategy();
-        }
+        $this->strategy = new VideoResourceStrategy();
 
-        return new VideoResourceStrategy();
+        if (config('escolalms_video.enable')) {
+            $this->strategy = new VideoEnableProcessingStrategy();
+        }
+        if (config('escolalms_video.enable') && config('escolalms_video.non_strict_value')) {
+            $this->strategy = new VideoNonStrictValueResourceStrategy();
+        }
     }
 
     public function getStrategy(): VideoResourceStrategy

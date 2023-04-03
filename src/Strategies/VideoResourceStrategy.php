@@ -13,4 +13,10 @@ class VideoResourceStrategy
     {
         return [];
     }
+
+    protected function parseJson($object): ?array
+    {
+        $json = $object->topic->json;
+        return is_array($json) ? $json : json_decode($json, true);
+    }
 }

@@ -8,7 +8,7 @@ class VideoNonStrictValueResourceStrategy extends VideoResourceStrategy
 {
     function clientResource($object): array
     {
-        $json = json_decode($object->topic->json, true);
+        $json = $this->parseJson($object);
         $topicable = $object->topic->topicable;
         $value = $json['ffmpeg']['path'] ?? $topicable->value;
 
@@ -20,7 +20,7 @@ class VideoNonStrictValueResourceStrategy extends VideoResourceStrategy
 
     function adminResource($object): array
     {
-        $json = json_decode($object->topic->json, true);
+        $json = $this->parseJson($object);
 
         return [
             'hls' => $json['ffmpeg']['path'] ?? null,

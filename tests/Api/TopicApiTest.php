@@ -86,6 +86,5 @@ class TopicApiTest extends TestCase
                 'hls_url' => Storage::url($this->json['ffmpeg']['path']),
             ]
         ]);
-
     }
 }

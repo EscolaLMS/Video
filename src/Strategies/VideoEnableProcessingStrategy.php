@@ -8,7 +8,7 @@ class VideoEnableProcessingStrategy extends VideoResourceStrategy
 {
     function clientResource($object): array
     {
-        $json = json_decode($object->topic->json, true);
+        $json = $this->parseJson($object);
 
         return [
             'value' => $json['ffmpeg']['path'] ?? null,
@@ -18,7 +18,7 @@ class VideoEnableProcessingStrategy extends VideoResourceStrategy
 
     function adminResource($object): array
     {
-        $json = json_decode($object->topic->json, true);
+        $json = $this->parseJson($object);
 
         return [
             'hls' => $json['ffmpeg']['path'] ?? null,

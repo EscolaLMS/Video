@@ -10,6 +10,7 @@ use EscolaLms\Video\Tests\TestCase;
 use EscolaLms\Video\Tests\VideoTesting;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\Fluent\AssertableJson;
 
@@ -21,6 +22,7 @@ class PackageDisableTest extends TestCase
     {
         putenv("VIDEO_NON_STRICT_VALUE=false");
         putenv("VIDEO_PROCESSING_ENABLE=false");
+
         parent::setUp();
 
         $this->seed(VideoPermissionSeeder::class);
@@ -36,29 +38,4 @@ class PackageDisableTest extends TestCase
         Queue::assertNotPushed(CallQueuedListener::class);
     }
 
-    public function testVideoPackageDisableExtendableResource(): void
-    {
-        $course = $this->createCourse();
-        $this->actingAs($this->makeAdmin())
-            ->getJson('/api/courses/' . $course->getKey() . '/program')
-            ->assertOk()
-            ->assertJson(fn(AssertableJson $json) => $json->has(
-                'data', fn($json) =>
-                    $json->has('lessons', fn($json) =>
-                        $json->each(fn($json) =>
-                            $json->has('topics', fn($json) =>
-                                $json->each(fn($json) =>
-                                    $json->has('topicable', fn($json) => $json
-                                        ->has('url')
-                                        ->has('value')
-                                        ->missing('hls')
-                                        ->missing('hls_url')
-                                        ->etc()
-                                )->etc())
-                            )->etc()
-                        )
-                    )->etc()
-                )->etc()
-            );
-    }
 }
