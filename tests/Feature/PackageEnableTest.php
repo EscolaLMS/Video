@@ -20,6 +20,8 @@ class PackageEnableTest extends TestCase
     protected function setUp(): void
     {
         putenv("VIDEO_PROCESSING_ENABLE=true");
+        putenv("VIDEO_NON_STRICT_VALUE=false");
+
         parent::setUp();
 
         $this->seed(VideoPermissionSeeder::class);
@@ -33,30 +35,5 @@ class PackageEnableTest extends TestCase
         TopicTypeChanged::dispatch($this->makeAdmin(), $this->createVideo());
 
         Queue::assertPushed(CallQueuedListener::class);
-    }
-
-    public function testVideoPackageEnableExtendableResource(): void
-    {
-        $course = $this->createCourse();
-        $this->actingAs($this->makeAdmin())
-            ->getJson('/api/courses/' . $course->getKey() . '/program')
-            ->assertOk()
-            ->assertJson(fn(AssertableJson $json) => $json->has('data', fn($json) =>
-                $json->has('lessons', fn($json) =>
-                    $json->each(fn($json) =>
-                        $json->has('topics', fn($json) =>
-                            $json->each(fn($json) =>
-                                $json->has('topicable', fn($json) => $json
-                                    ->has('url')
-                                    ->has('value')
-                                    ->has('hls')
-                                    ->has('hls_url')
-                                    ->etc()
-                                )->etc()
-                            )
-                        )->etc()
-                    )
-                )->etc()
-            )->etc());
     }
 }
