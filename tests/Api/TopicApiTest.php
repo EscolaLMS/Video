@@ -36,7 +36,7 @@ class TopicApiTest extends TestCase
 
         $this->user = $this->makeAdmin();
         $this->course = Course::factory(['author_id' => $this->user->id])->create();
-        $lesson = Lesson::factory(['course_id' => $this->course->id])->create();
+        $lesson = Lesson::factory(['course_id' => $this->course->id, 'active' => true])->create();
         $this->topic = Topic::factory([
             'lesson_id' => $lesson->id,
             'json' => json_encode($this->json)
