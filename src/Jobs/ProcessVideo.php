@@ -5,6 +5,7 @@ namespace EscolaLms\Video\Jobs;
 use EscolaLms\Courses\Models\Topic;
 use EscolaLms\Video\Events\ProcessVideoFailed;
 use EscolaLms\Video\Events\ProcessVideoStarted;
+use EscolaLms\Video\Events\ProcessVideoState;
 use EscolaLms\Video\Models\Video;
 use Exception;
 use FFMpeg\Format\Video\X264;
@@ -14,6 +15,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -119,7 +122,8 @@ class ProcessVideo implements ShouldQueue
             ->onProgress(function ($percentage) use ($video) {
                 $this->updateVideoState(['ffmpeg' => [
                     'state' => 'coding',
-                    'percentage' => $percentage
+                    'percentage' => $percentage,
+                    'date_time' => Carbon::now()
                 ]]);
             })
             ->save($hlsPath);
@@ -128,12 +132,17 @@ class ProcessVideo implements ShouldQueue
     private function updateVideoState($state): void
     {
         $topic = $this->topic;
+        $data = is_array($topic->json) ? array_merge($topic->json, $state) : array_merge([], $state);
 
-        $arr = is_array($topic->json) ? $topic->json : [];
-        $topic->json = array_merge($arr, $state);
+        if (!Arr::get($data, 'progress_notification') && Arr::get($data, 'ffmpeg.percentage') >= 35 && Arr::get($data, 'ffmpeg.percentage') <= 85) {
+            ProcessVideoState::dispatch($this->user, $this->topic);
+            $data['progress_notification'] = true;
+        }
+
+        $topic->json = $data;
         $topic->save();
 
-        if ($state['ffmpeg']['state'] === 'finished') {
+        if ($data['ffmpeg']['state'] === 'finished') {
             $topic->active = true;
             $topic->save();
         }

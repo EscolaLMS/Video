@@ -8,6 +8,7 @@ use EscolaLms\TopicTypes\Http\Resources\TopicType\Admin\VideoResource as VideoAd
 use EscolaLms\TopicTypes\Http\Resources\TopicType\Client\VideoResource as VideoClientResource;
 use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
+use EscolaLms\Video\Providers\ScheduleServiceProvider;
 use EscolaLms\Video\Providers\SettingsServiceProvider;
 use EscolaLms\Video\Repositories\Contracts\VideoRepositoryContract;
 use EscolaLms\Video\Repositories\VideoRepository;
@@ -30,6 +31,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
 
         $this->app->register(AuthServiceProvider::class);
         $this->app->register(SettingsServiceProvider::class);
+        $this->app->register(ScheduleServiceProvider::class);
 
         Topic::registerContentClass(Video::class);
     }

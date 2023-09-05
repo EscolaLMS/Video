@@ -12,6 +12,7 @@ abstract class ProcessVideoEvent
     use Dispatchable, SerializesModels;
 
     private ?Authenticatable $user;
+
     private Topic $topic;
 
     /**
