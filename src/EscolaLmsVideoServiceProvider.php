@@ -6,6 +6,7 @@ use EscolaLms\Courses\Facades\Topic;
 use EscolaLms\TopicTypes\Events\TopicTypeChanged;
 use EscolaLms\TopicTypes\Http\Resources\TopicType\Admin\VideoResource as VideoAdminResource;
 use EscolaLms\TopicTypes\Http\Resources\TopicType\Client\VideoResource as VideoClientResource;
+use EscolaLms\Video\Enums\VideoProcessState;
 use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Providers\ScheduleServiceProvider;
@@ -54,7 +55,7 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
                     if (isset($topic)) {
                         $arr = is_array($topic->json) ? $topic->json : [];
                         $topic->json = array_merge($arr, ['ffmpeg' => [
-                            'state' => 'queue'
+                            'state' => VideoProcessState::QUEUE
                         ]]);
                         $topic->active = false;
                         $topic->save();

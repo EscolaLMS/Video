@@ -3,6 +3,7 @@
 namespace EscolaLms\Video\Jobs;
 
 use EscolaLms\Courses\Models\Topic;
+use EscolaLms\Video\Enums\VideoProcessState;
 use EscolaLms\Video\Events\ProcessVideoFailed;
 use EscolaLms\Video\Events\ProcessVideoStarted;
 use EscolaLms\Video\Events\ProcessVideoState;
@@ -34,7 +35,6 @@ class ProcessVideo implements ShouldQueue
     protected Topic $topic;
     protected ?Authenticatable $user;
     protected string $disk;
-
     public function __construct(Video $video, ?Authenticatable $user, string $disk = null)
     {
         $this->video = $video;
@@ -45,7 +45,6 @@ class ProcessVideo implements ShouldQueue
         $this->onConnection(config('escolalms_video.queue_connection'));
         $this->onQueue(config('escolalms_video.queue'));
     }
-
     public function handle(): bool
     {
         $video = $this->video;
@@ -59,7 +58,7 @@ class ProcessVideo implements ShouldQueue
         $this->clearDirectory($dir, $video);
 
         $this->updateVideoState(['ffmpeg' => [
-            'state' => 'starting'
+            'state' => VideoProcessState::STARTING
         ]]);
         $topic->save();
 
@@ -67,7 +66,7 @@ class ProcessVideo implements ShouldQueue
         $this->makeFilesVisible($dir);
 
         $this->updateVideoState(['ffmpeg' => [
-            'state' => 'finished',
+            'state' => VideoProcessState::FINISHED,
             'path' => $hlsPath,
         ]]);
 
@@ -77,7 +76,7 @@ class ProcessVideo implements ShouldQueue
     public function failed(Exception $exception)
     {
         $this->updateVideoState(['ffmpeg' => [
-            'state' => 'error',
+            'state' => VideoProcessState::ERROR,
             'message' => $exception->getMessage()
         ]]);
 
@@ -121,7 +120,7 @@ class ProcessVideo implements ShouldQueue
             ->getFFMpeg($input)
             ->onProgress(function ($percentage) use ($video) {
                 $this->updateVideoState(['ffmpeg' => [
-                    'state' => 'coding',
+                    'state' => VideoProcessState::CODING,
                     'percentage' => $percentage,
                     'date_time' => Carbon::now()
                 ]]);
@@ -142,7 +141,7 @@ class ProcessVideo implements ShouldQueue
         $topic->json = $data;
         $topic->save();
 
-        if ($data['ffmpeg']['state'] === 'finished') {
+        if ($data['ffmpeg']['state'] === VideoProcessState::FINISHED) {
             $topic->active = true;
             $topic->save();
         }
