@@ -21,14 +21,13 @@ class VideoRepository extends BaseRepository implements VideoRepositoryContract
         return Video::class;
     }
 
-    public function getBetweenProcessDates(Carbon $dateTimeFrom, Carbon $dateTimeTo, string $state): Collection
+    public function getByProcessDateBefore(Carbon $dateTime, string $state): Collection
     {
         return $this->model
             ->newQuery()
             ->with('topic')
             ->whereHas('topic', fn (Builder $query) => $query
-                ->where('json->ffmpeg->date_time', '>=', $dateTimeFrom->toISOString())
-                ->where('json->ffmpeg->date_time', '<=', $dateTimeTo->toISOString())
+                ->where('json->ffmpeg->date_time', '<=', $dateTime->toISOString())
                 ->where('json->ffmpeg->state', $state)
             )
             ->get();

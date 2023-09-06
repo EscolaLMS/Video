@@ -8,5 +8,5 @@ use Illuminate\Support\Collection;
 
 interface VideoRepositoryContract extends BaseRepositoryContract
 {
-    public function getBetweenProcessDates(Carbon $dateTimeFrom, Carbon $dateTimeTo, string $state): Collection;
+    public function getByProcessDateBefore(Carbon $dateTime, string $state): Collection;
 }

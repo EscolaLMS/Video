@@ -23,10 +23,10 @@ class DetectStuckVideoTest extends TestCase
     {
         Event::fake();
 
-        $topic1 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->subMinute()]);
-        $topic2 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->subMinutes(59)]);
-        $topic3 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->addMinutes(59)]);
-        $topic4 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->addMinute()]);
+        $topic1 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->subHours(7)]);
+        $topic2 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->subHours(6)]);
+        $topic3 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->subDays(2)]);
+        $topic4 = $this->createVideoWithState(['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()]);
         $topic5 = $this->createVideoWithState(['state' => VideoProcessState::FINISHED]);
         $topic6 = $this->createVideoWithState(['state' => VideoProcessState::ERROR]);
         $topic7 = $this->createVideoWithState(['state' => VideoProcessState::QUEUE]);
@@ -47,20 +47,19 @@ class DetectStuckVideoTest extends TestCase
         $this->assertEquals($topic2->json['ffmpeg']['message'], 'An unknown error occurred during video processing');
         $this->assertEquals($topic3->json['ffmpeg']['state'], VideoProcessState::ERROR);
         $this->assertEquals($topic3->json['ffmpeg']['message'], 'An unknown error occurred during video processing');
-        $this->assertEquals($topic4->json['ffmpeg']['state'], VideoProcessState::ERROR);
-        $this->assertEquals($topic4->json['ffmpeg']['message'], 'An unknown error occurred during video processing');
+        $this->assertEquals($topic4->json['ffmpeg']['state'], VideoProcessState::CODING);
         $this->assertEquals($topic5->json['ffmpeg']['state'], VideoProcessState::FINISHED);
         $this->assertEquals($topic6->json['ffmpeg']['state'], VideoProcessState::ERROR);
         $this->assertEquals($topic7->json['ffmpeg']['state'], VideoProcessState::QUEUE);
 
-        Event::assertDispatchedTimes(ProcessVideoFailed::class, 4);
+        Event::assertDispatchedTimes(ProcessVideoFailed::class, 3);
         Event::assertDispatched(
             ProcessVideoFailed::class,
-            fn (ProcessVideoFailed $event) => in_array($event->getTopic()->getKey(), [$topic1->getKey(), $topic2->getKey(), $topic3->getKey(), $topic4->getKey()])
+            fn (ProcessVideoFailed $event) => in_array($event->getTopic()->getKey(), [$topic1->getKey(), $topic2->getKey(), $topic3->getKey()])
         );
         Event::assertNotDispatched(
             ProcessVideoFailed::class,
-            fn (ProcessVideoFailed $event) => in_array($event->getTopic()->getKey(), [$topic5->getKey(), $topic6->getKey(), $topic7->getKey()])
+            fn (ProcessVideoFailed $event) => in_array($event->getTopic()->getKey(), [$topic4->getKey(), $topic5->getKey(), $topic6->getKey(), $topic7->getKey()])
         );
     }
 
@@ -76,7 +75,7 @@ class DetectStuckVideoTest extends TestCase
             ->state(fn() => [
                 'lesson_id' => $lesson->getKey(),
                 'json' => [
-                    'ffmpeg' => ['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->subMinute()]
+                    'ffmpeg' => ['state' => VideoProcessState::CODING, 'date_time' => Carbon::now()->subHours(8)]
                 ],
                 'topicable_type' => \EscolaLms\TopicTypes\Models\TopicContent\Video::class,
                 'topicable_id' => Video::factory()->create()->getKey()

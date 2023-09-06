@@ -66,7 +66,6 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
             $this->extendResources();
         }
     }
-
     public function bootForConsole()
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');

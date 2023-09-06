@@ -21,7 +21,7 @@ class DetectStuckVideo implements ShouldQueue
     public function handle(VideoRepositoryContract $repository): void
     {
         $repository
-            ->getBetweenProcessDates(Carbon::now()->subHour(), Carbon::now()->addHour(), VideoProcessState::CODING)
+            ->getByProcessDateBefore(Carbon::now()->subHours(6), VideoProcessState::CODING)
             ->each(fn(Video $video) => $this->process($video));
     }
 
