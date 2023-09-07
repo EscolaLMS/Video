@@ -5,6 +5,7 @@ namespace EscolaLms\Video\Jobs;
 use EscolaLms\Courses\Models\Topic;
 use EscolaLms\Video\Enums\VideoProcessState;
 use EscolaLms\Video\Events\ProcessVideoFailed;
+use EscolaLms\Video\Events\ProcessVideoFinished;
 use EscolaLms\Video\Events\ProcessVideoStarted;
 use EscolaLms\Video\Events\ProcessVideoState;
 use EscolaLms\Video\Models\Video;
@@ -53,14 +54,14 @@ class ProcessVideo implements ShouldQueue
         $dir = $video->generateStoragePath();
         $hlsPath = $dir . '/hls.m3u8';
 
-        ProcessVideoStarted::dispatch($this->user, $topic);
-
         $this->clearDirectory($dir, $video);
 
         $this->updateVideoState(['ffmpeg' => [
             'state' => VideoProcessState::STARTING
         ]]);
         $topic->save();
+
+        ProcessVideoStarted::dispatch($this->user, $topic);
 
         $this->process($video, $input, $hlsPath);
         $this->makeFilesVisible($dir);
@@ -69,6 +70,8 @@ class ProcessVideo implements ShouldQueue
             'state' => VideoProcessState::FINISHED,
             'path' => $hlsPath,
         ]]);
+
+        ProcessVideoFinished::dispatch($this->user, $this->topic);
 
         return true;
     }
@@ -134,7 +137,7 @@ class ProcessVideo implements ShouldQueue
         $data = is_array($topic->json) ? array_merge($topic->json, $state) : array_merge([], $state);
 
         if (!Arr::get($data, 'progress_notification') && Arr::get($data, 'ffmpeg.percentage') >= 35 && Arr::get($data, 'ffmpeg.percentage') <= 85) {
-            ProcessVideoState::dispatch($this->user, $this->topic);
+            ProcessVideoState::dispatch($this->user, $this->topic, Arr::get($data, 'ffmpeg.percentage'));
             $data['progress_notification'] = true;
         }
 

@@ -27,7 +27,6 @@ class DetectStuckVideo implements ShouldQueue
 
     private function process(Video $video): void
     {
-
         $topic = $video->topic;
         $topic->json = [
             'ffmpeg' => [
