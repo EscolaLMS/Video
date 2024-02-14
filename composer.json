@@ -8,7 +8,7 @@
     "escolalms/topic-types": "^0",
     "escolalms/settings": "^0",
     "laravel/framework": ">=8.0",
-    "league/flysystem-aws-s3-v3": "^1.0",
+    "league/flysystem-aws-s3-v3": "^3",
     "pbmedia/laravel-ffmpeg": "^8"
   },
   "require-dev": {
