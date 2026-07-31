@@ -117,6 +117,28 @@ class SettingsTest extends TestCase
                     ],
                     'value' => true,
                     'readonly' => false,
+                ],
+                'allowed_video_codecs' => [
+                    'full_key' => "$configKey.allowed_video_codecs",
+                    'key' => 'allowed_video_codecs',
+                    'public' => false,
+                    'rules' => [
+                        'nullable',
+                        'string'
+                    ],
+                    'value' => '',
+                    'readonly' => false,
+                ],
+                'allowed_audio_codecs' => [
+                    'full_key' => "$configKey.allowed_audio_codecs",
+                    'key' => 'allowed_audio_codecs',
+                    'public' => false,
+                    'rules' => [
+                        'nullable',
+                        'string'
+                    ],
+                    'value' => '',
+                    'readonly' => false,
                 ]
             ],
         ]);

@@ -20,6 +20,8 @@ class SettingsServiceProvider extends ServiceProvider
             AdministrableConfig::registerConfig(self::CONFIG_KEY . '.bitrates', ['array'], false);
             AdministrableConfig::registerConfig(self::CONFIG_KEY . '.enable', ['boolean'], false);
             AdministrableConfig::registerConfig(self::CONFIG_KEY . '.non_strict_value', ['boolean'], false);
+            AdministrableConfig::registerConfig(self::CONFIG_KEY . '.allowed_video_codecs', ['nullable', 'string'], false);
+            AdministrableConfig::registerConfig(self::CONFIG_KEY . '.allowed_audio_codecs', ['nullable', 'string'], false);
         }
     }
 }
