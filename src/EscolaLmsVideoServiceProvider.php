@@ -11,6 +11,7 @@ use EscolaLms\Video\Jobs\ProcessVideo;
 use EscolaLms\Video\Models\Video;
 use EscolaLms\Video\Providers\ScheduleServiceProvider;
 use EscolaLms\Video\Providers\SettingsServiceProvider;
+use EscolaLms\Video\Rules\SupportedVideoCodec;
 use EscolaLms\Video\Repositories\Contracts\VideoRepositoryContract;
 use EscolaLms\Video\Repositories\VideoRepository;
 use EscolaLms\Video\Strategies\VideoStrategyResourceContext;
@@ -29,6 +30,12 @@ class EscolaLmsVideoServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__ . '/config.php', self::CONFIG_KEY);
+
+        // Contribute the codec-validation rule to the base video content upload (topic-types),
+        // resolved there by binding key only — no reverse dependency on this package.
+        // Literal key (not the const) so an older topic-types without it still boots; must match
+        // EscolaLms\TopicTypes\Models\TopicContent\Video::CODEC_RULE_BINDING.
+        $this->app->bind('escolalms.topic-content.video.codec-rule', fn () => new SupportedVideoCodec());
 
         $this->app->register(AuthServiceProvider::class);
         $this->app->register(SettingsServiceProvider::class);
